@@ -1,14 +1,282 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nexusplay</title>
+    <title>Nexusplay - Algoritmos Inteligentes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css" />
+    <script src="script.js" defer></script>
   </head>
   <body>
-    <div id="root"></div>
     
-    <!-- VLibras Widget -->
+    <header class="app-header">
+      <div class="header-brand-container">
+        <div class="brand-info">
+          <div class="brand-logo-box">
+            <i data-lucide="play"></i>
+          </div>
+          <div>
+            <h1 class="brand-title">Nexusplay</h1>
+            <p class="brand-subtitle">Concepção de Algoritmos em Libras</p>
+          </div>
+        </div>
+        
+        <div class="level-badge-selector">
+          <span class="level-badge-label">Nível</span>
+          <select id="level-selector" onchange="selecionarNivel(this.value)" class="level-select">
+          </select>
+        </div>
+      </div>
+
+      <div class="header-actions-group">
+        <button onclick="abrirApresentacao()" class="h-btn h-btn-indigo">
+          <i data-lucide="file-text"></i>
+          <span>Relatório Acadêmico</span>
+        </button>
+        <button onclick="abrirDicionario()" class="h-btn h-btn-emerald">
+          <i data-lucide="book-open"></i>
+          <span>Dicionário Libras</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="main-sandbox">
+      
+      <section class="central-view-block">
+        <div class="interactive-card">
+          
+          <div class="libras-interpreter-widget">
+            <img id="libras-animator" src="" class="libras-render-media" alt="Sinal em Libras" />
+            <div class="libras-display-stripe">
+              <span class="libras-display-label">Libras Ativa</span>
+            </div>
+            <div class="status-beacon-pulse"></div>
+            <div class="status-beacon"></div>
+          </div>
+
+          <div class="mission-status-card">
+            <div class="mission-card-meta">
+              <span class="meta-prefix">
+                <i data-lucide="message-square"></i> Missão do Jogo
+              </span>
+              <span class="meta-pill-accessible">Acessível</span>
+            </div>
+            <h2 id="instrucao-game" class="instrucao-game-title">
+              Carregando instrução...
+            </h2>
+            <p id="libras-descricao" class="libras-desc-text">
+              Carregando explicações...
+            </p>
+          </div>
+
+          <div class="canvas-grid-box">
+            <div id="grid-container" class="interactive-grid-playground">
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <aside class="controller-aside">
+        
+        <div class="aside-config-section">
+          <div class="aside-section-header">
+            <h3 class="aside-section-title">Comandos Disponíveis</h3>
+            <div class="visual-badge">
+              <i data-lucide="hand"></i>
+              <span>Visual</span>
+            </div>
+          </div>
+          
+          <div id="command-selector-grid" class="available-commands-grid">
+          </div>
+        </div>
+
+        <div class="logic-sequence-workspace">
+          <div class="aside-section-header">
+            <h3 class="aside-section-title">Sua Lógica</h3>
+            <button onclick="limparSequencia()" id="btn-clear-seq" class="btn-trash-clear">
+              <i data-lucide="trash-2"></i>
+            </button>
+          </div>
+
+          <div id="sequence-container" class="sequence-slots-wrapper custom-scrollbar">
+          </div>
+
+          <button id="btn-execute-sequence" onclick="executarSequencia()" class="btn-launch-sequence btn-launch-sequence-disabled">
+            <span>EXECUTAR</span>
+            <i data-lucide="play"></i>
+          </button>
+        </div>
+
+      </aside>
+
+    </main>
+
+    <div id="modal-tutorial" class="modal-screen-overlay">
+      <div class="tutorial-deck-box">
+        <div class="deck-color-bar-top"></div>
+        <div class="deck-modal-center-layout">
+          <div class="modal-icon-badge-round animate-bouncing">
+            <i data-lucide="graduation-cap"></i>
+          </div>
+          
+          <div class="modal-headline-block">
+            <h2 class="modal-heading-text">Projeto Nexusplay</h2>
+            <p class="modal-tagline-text">
+              Trabalho Acadêmico de Concepção de Algoritmos focado em acessibilidade bilingue (Libras).
+            </p>
+          </div>
+
+          <div class="tutorial-meta-showcase-box">
+            <div class="meta-showcase-row">
+              <div class="meta-showcase-icon-box bg-sh-indigo">
+                <i data-lucide="file-text"></i>
+              </div>
+              <div class="showcase-text-col">
+                <h4 class="showcase-row-title">Relatório Acadêmico</h4>
+                <p class="showcase-row-desc">Consulte o dossiê com fundamentação teórica completo.</p>
+              </div>
+            </div>
+            
+            <div class="meta-showcase-row">
+              <div class="meta-showcase-icon-box bg-sh-emerald">
+                <i data-lucide="hand"></i>
+              </div>
+              <div class="showcase-text-col">
+                <h4 class="showcase-row-title">Acessibilidade Pura</h4>
+                <p class="showcase-row-desc">Interface sem barreiras de texto, adaptada à cultura e semiótica surda.</p>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; width: 100%; gap: 10px;">
+            <button onclick="iniciarApresentacao()" class="modal-primary-action-btn">
+              <span>ABRIR APRESENTAÇÃO</span>
+              <i data-lucide="chevron-right"></i>
+            </button>
+            <button onclick="fecharTutorial()" class="modal-secondary-cancel-btn">
+              Ir para o Jogo
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-report" class="modal-screen-overlay hidden">
+      <div class="slide-report-immersive-container">
+        <div class="immersive-bar-deck-top"></div>
+        
+        <div class="immersive-report-header">
+          <div class="immersive-header-meta">
+            <i data-lucide="file-text"></i>
+            <span class="immersive-hdr-tag">Dossiê Acadêmico</span>
+          </div>
+          <button onclick="fecharApresentacao()" class="close-immersive-btn">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+
+        <div class="immersive-report-body">
+          
+          <nav class="report-sidebar-nav custom-scrollbar-dark">
+            <button onclick="mudarPaginaReport(0)" class="tab-report-btn">Capa</button>
+            <button onclick="mudarPaginaReport(1)" class="tab-report-btn">Fundamento</button>
+            <button onclick="mudarPaginaReport(2)" class="tab-report-btn">Método</button>
+            <button onclick="mudarPaginaReport(3)" class="tab-report-btn">Estrutura</button>
+            <button onclick="mudarPaginaReport(4)" class="tab-report-btn">Métricas</button>
+            <button onclick="mudarPaginaReport(5)" class="tab-report-btn">Referências</button>
+          </nav>
+
+          <div class="immersive-report-scroller custom-scrollbar-dark">
+            <div id="report-slide-content">
+            </div>
+          </div>
+
+        </div>
+
+        <div class="immersive-report-footer">
+          <div id="slide-page-indicator-dots" class="dot-carousel-box">
+          </div>
+          <div class="carousel-nav-group">
+            <button id="btn-report-prev" onclick="anteriorPaginaReport()" class="nav-report-arrow-btn">
+              <i data-lucide="chevron-left"></i> Anterior
+            </button>
+            <button id="btn-report-next" onclick="proximaPaginaReport()" class="nav-report-arrow-btn nav-report-primary-btn">
+              <span>Continuar</span> <i data-lucide="chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-dictionary" class="modal-screen-overlay hidden">
+      <div class="tutorial-deck-box" style="max-width: 672px;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <i data-lucide="book-open" style="color: var(--color-emerald); width: 32px; height: 32px;"></i>
+            <h2 class="modal-heading-text" style="font-size: 1.5rem;">Dicionário de Sinais</h2>
+          </div>
+          <button onclick="fecharDicionario()" class="close-immersive-btn">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+
+        <div class="dictionary-grid-row">
+          
+          <div class="dict-gesture-card">
+            <div class="dict-icon-container dict-icon-mover">
+              <i data-lucide="arrow-up"></i>
+            </div>
+            <div>
+              <h4 class="dict-title">Andar Frente</h4>
+              <p class="dict-desc">Sinal visual de avanço em linha reta.</p>
+            </div>
+          </div>
+
+          <div class="dict-gesture-card">
+            <div class="dict-icon-container dict-icon-esquerda">
+              <i data-lucide="arrow-left"></i>
+            </div>
+            <div>
+              <h4 class="dict-title">Girar Esquerda</h4>
+              <p class="dict-desc">Girar o personagem 90° à esquerda.</p>
+            </div>
+          </div>
+
+          <div class="dict-gesture-card">
+            <div class="dict-icon-container dict-icon-direita">
+              <i data-lucide="arrow-right"></i>
+            </div>
+            <div>
+              <h4 class="dict-title">Girar Direita</h4>
+              <p class="dict-desc">Girar o personagem 90° à direita.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="info-alert-tinted-box">
+          <i data-lucide="info"></i>
+          <p class="info-alert-text">
+            Estes sinais são representações intuitivas adaptadas para facilitar a associação lógica durante o aprendizado de algoritmos.
+          </p>
+        </div>
+
+        <button onclick="fecharDicionario()" class="modal-primary-action-btn" style="background-color: var(--text-primary); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15)">
+          Ok, Entendido!
+        </button>
+      </div>
+    </div>
+
+    <div id="modal-gameover" class="modal-screen-overlay hidden">
+      <div id="gameover-content-box" class="tutorial-deck-box" style="max-width: 448px;">
+      </div>
+    </div>
+
     <div vw class="enabled">
       <div vw-access-button class="active"></div>
       <div vw-plugin-wrapper>
@@ -20,7 +288,5 @@
       new window.VLibras.Widget('https://vlibras.gov.br/app');
     </script>
 
-    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
