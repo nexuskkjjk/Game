@@ -56,12 +56,132 @@ const definiuComandos = {
   }
 };
 
+const SynthAudio = {
+  ctx: null,
+  init() {
+    if (!this.ctx) {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (this.ctx.state === 'suspended') {
+      try {
+        this.ctx.resume();
+      } catch(e) {}
+    }
+  },
+  playClick() {
+    try {
+      this.init();
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.1);
+    } catch (e) {}
+  },
+  playRemove() {
+    try {
+      this.init();
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(150, this.ctx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.12);
+    } catch (e) {}
+  },
+  playStep() {
+    try {
+      this.init();
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+      osc.frequency.setValueAtTime(500, this.ctx.currentTime + 0.05);
+      gain.gain.setValueAtTime(0.03, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.15);
+    } catch (e) {}
+  },
+  playRotate() {
+    try {
+      this.init();
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(450, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.03, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.15);
+    } catch (e) {}
+  },
+  playWin() {
+    try {
+      this.init();
+      const now = this.ctx.currentTime;
+      const playTone = (freq, start, duration) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.05, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(start);
+        osc.stop(start + duration);
+      };
+      playTone(523.25, now, 0.15);      // C5
+      playTone(659.25, now + 0.1, 0.15);  // E5
+      playTone(783.99, now + 0.2, 0.15);  // G5
+      playTone(1046.50, now + 0.3, 0.3); // C6
+    } catch (e) {}
+  },
+  playLose() {
+    try {
+      this.init();
+      const now = this.ctx.currentTime;
+      const playTone = (freq, start, duration) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, start);
+        osc.frequency.linearRampToValueAtTime(freq - 100, start + duration);
+        gain.gain.setValueAtTime(0.05, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(start);
+        osc.stop(start + duration);
+      };
+      playTone(220, now, 0.25);      // A3
+      playTone(165, now + 0.18, 0.4);  // E3
+    } catch (e) {}
+  }
+};
+
 let indiceNivelAtual = 0;
 let sequencia = [];
 let estaExecutando = false;
 let posicaoJogador = { x: 0, y: 4 };
 let direcaoJogador = 'UP';
-let slideAtualReport = 0;
 
 const selectNiveis = document.getElementById('level-selector');
 const containerGrid = document.getElementById('grid-container');
@@ -96,7 +216,7 @@ function selecionarNivel(index) {
   carregarNivel(parseInt(index));
 }
 
-function carregarNivel(index) {
+function carregarNivel(index, skipIntro = false) {
   indiceNivelAtual = index;
   if (selectNiveis) {
     selectNiveis.value = index;
@@ -112,67 +232,115 @@ function carregarNivel(index) {
   if (tagDescricaoLibras) tagDescricaoLibras.textContent = nivel.descricaoLibras;
   if (imgLibrasWidget) imgLibrasWidget.src = nivel.videoUrl || '';
 
-  renderizarGrid();
+  renderizarGrid(true);
   renderizarListaComandosDisponiveis();
   renderizarSequencia();
   atualizarBotoes();
-}
 
-function renderizarGrid() {
-  if (!containerGrid) return;
-  const nivel = niveis[indiceNivelAtual];
-  containerGrid.style.gridTemplateColumns = `repeat(${nivel.tamanhoGrid}, minmax(0, 1fr))`;
-  containerGrid.style.gridTemplateRows = `repeat(${nivel.tamanhoGrid}, minmax(0, 1fr))`;
-  containerGrid.innerHTML = '';
-
-  for (let y = 0; y < nivel.tamanhoGrid; y++) {
-    for (let x = 0; x < nivel.tamanhoGrid; x++) {
-      const cell = document.createElement('div');
-      cell.className = "grid-unit";
-      
-      const isObstaculo = nivel.obstaculos.some(o => o.x === x && o.y === y);
-      const isAlvo = nivel.posAlvo.x === x && nivel.posAlvo.y === y;
-      const isInicio = nivel.posInicio.x === x && nivel.posInicio.y === y;
-      const isPlayer = posicaoJogador.x === x && posicaoJogador.y === y;
-
-      if (isObstaculo) {
-        cell.classList.add("grid-unit-obstacle");
-        cell.innerHTML = `<i data-lucide="x-circle"></i>`;
-      } else if (isAlvo) {
-        cell.classList.add("grid-unit-target");
-        cell.innerHTML = `
-          <div class="target-glow-ring"></div>
-          <div class="target-inner-core">
-            <div class="target-inner-dot"></div>
-          </div>
-        `;
-      } else if (isPlayer) {
-        cell.classList.add("grid-unit-player");
-        
-        const rotationClasses = {
-          UP: "rotate-0",
-          RIGHT: "rotate-90",
-          DOWN: "rotate-180",
-          LEFT: "rotate-minus-90"
-        };
-        
-        cell.innerHTML = `
-          <div class="player-sprite-wrapper ${rotationClasses[direcaoJogador]}">
-            <i data-lucide="arrow-up"></i>
-            <span class="player-sprite-label">Robô</span>
-          </div>
-        `;
-      } else if (isInicio) {
-        cell.classList.add("grid-unit-start-base");
-        cell.innerHTML = `<span class="start-indicator-label">Início</span>`;
-      }
-
-      containerGrid.appendChild(cell);
+  if (!skipIntro) {
+    const modalT = document.getElementById('modal-tutorial');
+    const isTutorialVisible = modalT && !modalT.classList.contains('hidden');
+    if (!isTutorialVisible) {
+      abrirLevelIntro();
     }
   }
+}
+
+function renderizarGrid(forceRebuild = false) {
+  if (!containerGrid) return;
+  const nivel = niveis[indiceNivelAtual];
   
+  const totalCellsNeeded = nivel.tamanhoGrid * nivel.tamanhoGrid;
+  const currentUnitCount = containerGrid.querySelectorAll('.grid-unit').length;
+  
+  if (forceRebuild || currentUnitCount !== totalCellsNeeded) {
+    containerGrid.style.gridTemplateColumns = `repeat(${nivel.tamanhoGrid}, minmax(0, 1fr))`;
+    containerGrid.style.gridTemplateRows = `repeat(${nivel.tamanhoGrid}, minmax(0, 1fr))`;
+    
+    // Clear everything except elements we want to keep (such as the persistent player token if any)
+    const oldCells = containerGrid.querySelectorAll('.grid-unit');
+    oldCells.forEach(el => el.remove());
+
+    for (let y = 0; y < nivel.tamanhoGrid; y++) {
+      for (let x = 0; x < nivel.tamanhoGrid; x++) {
+        const cell = document.createElement('div');
+        cell.className = `grid-unit cell-${x}-${y}`;
+        
+        const isObstaculo = nivel.obstaculos.some(o => o.x === x && o.y === y);
+        const isAlvo = nivel.posAlvo.x === x && nivel.posAlvo.y === y;
+        const isInicio = nivel.posInicio.x === x && nivel.posInicio.y === y;
+
+        if (isObstaculo) {
+          cell.classList.add("grid-unit-obstacle");
+          cell.innerHTML = `<i data-lucide="x-circle"></i>`;
+        } else if (isAlvo) {
+          cell.classList.add("grid-unit-target");
+          cell.innerHTML = `
+            <div class="target-glow-ring"></div>
+            <div class="target-inner-core">
+              <div class="target-inner-dot"></div>
+            </div>
+          `;
+        } else if (isInicio) {
+          cell.classList.add("grid-unit-start-base");
+          cell.innerHTML = `<span class="start-indicator-label">Início</span>`;
+        }
+
+        containerGrid.appendChild(cell);
+      }
+    }
+  }
+
+  // Draw or update the player token
+  atualizarPosicaoJogador();
+
   if (window.lucide) {
     window.lucide.createIcons();
+  }
+}
+
+function atualizarPosicaoJogador() {
+  if (!containerGrid) return;
+  const nivel = niveis[indiceNivelAtual];
+  
+  let playerToken = document.getElementById('player-token');
+  if (!playerToken) {
+    playerToken = document.createElement('div');
+    playerToken.id = 'player-token';
+    playerToken.className = 'player-sprite-wrapper';
+    playerToken.style.position = 'absolute';
+    playerToken.style.zIndex = '50';
+    playerToken.style.boxShadow = '0 12px 24px -4px rgba(79, 70, 229, 0.4), 0 4px 6px -2px rgba(79, 70, 229, 0.2)';
+    playerToken.style.borderRadius = 'var(--radius-md)';
+    playerToken.style.transition = 'left 0.35s cubic-bezier(0.25, 1, 0.5, 1), top 0.35s cubic-bezier(0.25, 1, 0.5, 1), transform 0.35s cubic-bezier(0.25, 1, 0.5, 1)';
+    containerGrid.appendChild(playerToken);
+  }
+
+  const rotationClasses = {
+    UP: "rotate-0",
+    RIGHT: "rotate-90",
+    DOWN: "rotate-180",
+    LEFT: "rotate-minus-90"
+  };
+
+  // set classes for rotation animation
+  playerToken.className = `player-sprite-wrapper ${rotationClasses[direcaoJogador]}`;
+  
+  playerToken.innerHTML = `
+    <i data-lucide="arrow-up" style="width: 24px; height: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2))"></i>
+    <span class="player-sprite-label" style="font-size: 10px; font-weight: 800; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.05em;">Robô</span>
+  `;
+
+  const targetCell = containerGrid.querySelector(`.cell-${posicaoJogador.x}-${posicaoJogador.y}`);
+  if (targetCell) {
+    const align = () => {
+      playerToken.style.left = `${targetCell.offsetLeft}px`;
+      playerToken.style.top = `${targetCell.offsetTop}px`;
+      playerToken.style.width = `${targetCell.offsetWidth}px`;
+      playerToken.style.height = `${targetCell.offsetHeight}px`;
+    };
+    align();
+    setTimeout(align, 50);
   }
 }
 
@@ -200,6 +368,7 @@ function renderizarListaComandosDisponiveis() {
 
 function adicionarComando(cmdType) {
   if (estaExecutando || sequencia.length >= 10) return;
+  SynthAudio.playClick();
   sequencia.push({
     id: Math.random().toString(36).substring(2, 9),
     type: cmdType,
@@ -210,12 +379,14 @@ function adicionarComando(cmdType) {
 
 function removerComandoNoIndice(id) {
   if (estaExecutando) return;
+  SynthAudio.playRemove();
   sequencia = sequencia.filter(cmd => cmd.id !== id);
   renderizarSequencia();
 }
 
 function limparSequencia() {
   if (estaExecutando) return;
+  SynthAudio.playRemove();
   sequencia = [];
   renderizarSequencia();
 }
@@ -270,18 +441,59 @@ function atualizarBotoes() {
   }
 }
 
+function limparTrilha() {
+  if (!containerGrid) return;
+  containerGrid.querySelectorAll('.cell-trail-glowing').forEach(cell => {
+    cell.classList.remove('cell-trail-glowing');
+  });
+}
+
+function marcarTrilha(x, y) {
+  if (!containerGrid) return;
+  const cellElement = containerGrid.querySelector(`.cell-${x}-${y}`);
+  if (cellElement) {
+    cellElement.classList.add('cell-trail-glowing');
+  }
+}
+
+function destacarPasso(idx) {
+  if (!containerSequencia) return;
+  const items = containerSequencia.querySelectorAll('.queued-command-item');
+  items.forEach((item, i) => {
+    if (i === idx) {
+      item.classList.add('active-step');
+    } else {
+      item.classList.remove('active-step');
+    }
+  });
+}
+
+function limparDestacarPasso() {
+  if (!containerSequencia) return;
+  const items = containerSequencia.querySelectorAll('.queued-command-item');
+  items.forEach((item) => {
+    item.classList.remove('active-step');
+  });
+}
+
 async function executarSequencia() {
   if (sequencia.length === 0 || estaExecutando) return;
 
   estaExecutando = true;
   atualizarBotoes();
+  limparTrilha();
   
   const nivel = niveis[indiceNivelAtual];
   posicaoJogador = { ...nivel.posInicio };
   direcaoJogador = 'UP';
   renderizarGrid();
+  
+  // Highlight the start cell in the path trail
+  marcarTrilha(posicaoJogador.x, posicaoJogador.y);
 
+  let currentStepIdx = 0;
   for (const cmd of sequencia) {
+    destacarPasso(currentStepIdx);
     await new Promise(resolve => setTimeout(resolve, 600));
 
     if (cmd.type === 'MOVER') {
@@ -293,32 +505,40 @@ async function executarSequencia() {
 
       if (novaPos.x < 0 || novaPos.x >= nivel.tamanhoGrid ||
           novaPos.y < 0 || novaPos.y >= nivel.tamanhoGrid) {
+        limparDestacarPasso();
         finalizarJogoErrado("colisao_borda");
         return;
       }
 
       if (nivel.obstaculos.some(o => o.x === novaPos.x && o.y === novaPos.y)) {
+        limparDestacarPasso();
         finalizarJogoErrado("colisao_obstaculo");
         return;
       }
 
       posicaoJogador = novaPos;
       renderizarGrid();
+      marcarTrilha(posicaoJogador.x, posicaoJogador.y);
+      SynthAudio.playStep();
     } 
     else if (cmd.type === 'GIRAR_ESQUERDA') {
       const direcoes = ['UP', 'LEFT', 'DOWN', 'RIGHT'];
       const idx = direcoes.indexOf(direcaoJogador);
       direcaoJogador = direcoes[(idx + 1) % 4];
       renderizarGrid();
+      SynthAudio.playRotate();
     } 
     else if (cmd.type === 'GIRAR_DIREITA') {
       const direcoes = ['UP', 'RIGHT', 'DOWN', 'LEFT'];
       const idx = direcoes.indexOf(direcaoJogador);
       direcaoJogador = direcoes[(idx + 1) % 4];
       renderizarGrid();
+      SynthAudio.playRotate();
     }
+    currentStepIdx++;
   }
 
+  limparDestacarPasso();
   await new Promise(resolve => setTimeout(resolve, 400));
 
   if (posicaoJogador.x === nivel.posAlvo.x && posicaoJogador.y === nivel.posAlvo.y) {
@@ -330,6 +550,7 @@ async function executarSequencia() {
 
 function finalizarJogoSucesso() {
   estaExecutando = false;
+  SynthAudio.playWin();
   
   const cardBox = document.getElementById('gameover-content-box');
   if (!cardBox) return;
@@ -352,7 +573,7 @@ function finalizarJogoSucesso() {
             <span>PRÓXIMO NÍVEL</span> <i data-lucide="chevron-right"></i>
           </button>
         ` : `
-          <p style="font-size: 11px; font-weight: 900; color: var(--color-emerald); text-transform: uppercase; letter-spacing: 0.1em; padding: 10px 0;">Parabéns! Você completou todos os níveis!</p>
+          <p style="font-size: 11.5px; font-weight: 900; color: var(--color-emerald); text-transform: uppercase; letter-spacing: 0.12em; padding: 10px 0; text-align: center;">Parabéns! Você completou todos os níveis!</p>
         `}
         <button onclick="reiniciarNivelAtual()" class="modal-secondary-cancel-btn">
           Jogar Novamente
@@ -372,6 +593,15 @@ function finalizarJogoSucesso() {
 function finalizarJogoErrado(motivo) {
   estaExecutando = false;
   atualizarBotoes();
+  SynthAudio.playLose();
+
+  const playerToken = document.getElementById('player-token');
+  if (playerToken) {
+    playerToken.classList.add('shake-token');
+    setTimeout(() => {
+      playerToken.classList.remove('shake-token');
+    }, 1000);
+  }
 
   let mensagem = "O trajeto planejado não alcançou o objetivo. Revise seus blocos.";
   if (motivo === "colisao_borda") {
@@ -421,7 +651,7 @@ function proximoNivel() {
 
 function reiniciarNivelAtual() {
   fecharGameOverModal();
-  carregarNivel(indiceNivelAtual);
+  carregarNivel(indiceNivelAtual, true);
 }
 
 function fecharGameOverModal() {
@@ -432,23 +662,32 @@ function fecharGameOverModal() {
 function fecharTutorial() {
   const modalT = document.getElementById('modal-tutorial');
   if (modalT) modalT.classList.add('hidden');
+  abrirLevelIntro();
 }
 
-function abrirApresentacao() {
-  slideAtualReport = 0;
-  const modalR = document.getElementById('modal-report');
-  if (modalR) modalR.classList.remove('hidden');
-  carregarSlideReport(0);
+function abrirLevelIntro() {
+  const nivel = niveis[indiceNivelAtual];
+  const titleTag = document.getElementById('level-intro-title');
+  const videoTag = document.getElementById('level-intro-video');
+  const instTag = document.getElementById('level-intro-instruction');
+  const descTag = document.getElementById('level-intro-desc');
+  const modalL = document.getElementById('modal-level-intro');
+
+  if (titleTag) titleTag.textContent = `Introdução: Nível ${nivel.id}`;
+  if (videoTag) videoTag.src = nivel.videoUrl || '';
+  if (instTag) instTag.textContent = nivel.instrucao;
+  if (descTag) descTag.textContent = nivel.descricaoLibras;
+
+  if (modalL) modalL.classList.remove('hidden');
+
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
 }
 
-function fecharApresentacao() {
-  const modalR = document.getElementById('modal-report');
-  if (modalR) modalR.classList.add('hidden');
-}
-
-function iniciarApresentacao() {
-  fecharTutorial();
-  abrirApresentacao();
+function fecharLevelIntro() {
+  const modalL = document.getElementById('modal-level-intro');
+  if (modalL) modalL.classList.add('hidden');
 }
 
 function abrirDicionario() {
@@ -461,243 +700,9 @@ function fecharDicionario() {
   if (modalD) modalD.classList.add('hidden');
 }
 
-const slidesReport = [
-  {
-    title: "Resumo Executivo",
-    number: "01",
-    author: "Apresentador 01",
-    content: `
-      <div class="slide-wrap-box">
-        <h1>NEXUSPLAY</h1>
-        <div class="slide-brand-bar"></div>
-        <p class="slide-quote-italic">
-          "Arquitetura de Software e Acessibilidade em Libras para o Ensino de Algoritmos."
-        </p>
-        <div class="slide-p-body" style="display: flex; flex-direction: column; gap: 12px;">
-          <p>O <strong>Nexusplay</strong> é uma plataforma experimental de apoio didático que traduz conceitos abstratos de programação e ordenação lógica de códigos em uma interface visual e gestual simplificada.</p>
-          <p>O objetivo é eliminar a barreira da escrita convencional de linguagens computacionais complexas, permitindo que o estudante foque puramente na lógica de algoritmos essenciais.</p>
-        </div>
-      </div>
-    `
-  },
-  {
-    title: "Fundamentação Teórica",
-    number: "02",
-    author: "Apresentador 02",
-    content: `
-      <div class="slide-wrap-box">
-        <h3 class="slide-heading-text" style="font-size: 1.5rem;">Bases Pedagógicas</h3>
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-          <div class="academic-card">
-            <h4 class="ac-t-indigo"><span class="ac-dot ac-dot-indigo"></span> Metodologia Adaptada</h4>
-            <p class="ac-card-text">Prioriza a semiótica visual de interface gráfica e a experiência de uso simples livre de textos excessivos ou confusos.</p>
-          </div>
-          <div class="academic-card">
-            <h4 class="ac-t-emerald"><span class="ac-dot ac-dot-emerald"></span> Aprendizado Direto</h4>
-            <p class="ac-card-text">Os blocos e sinais visuais são os mediadores principais do conhecimento prático. O código se move de imediato de acordo com a sequência escolhida pelo usuário.</p>
-          </div>
-        </div>
-      </div>
-    `
-  },
-  {
-    title: "Metodologia",
-    number: "03",
-    author: "Apresentador 03",
-    content: `
-      <div class="slide-wrap-box">
-        <h3 class="slide-heading-text" style="font-size: 1.5rem;">Etapas de Formulação</h3>
-        <div class="timeline-list-container">
-          <div class="timeline-vertical-stripe"></div>
-          
-          <div class="timeline-step-row">
-            <div class="timeline-badge-step">01</div>
-            <h4 class="timeline-step-title">Análise Cognitiva</h4>
-            <p class="timeline-step-desc">Garantia de que os elementos gráficos não causem sobrecarga e sejam visualmente autodescritivos.</p>
-          </div>
-
-          <div class="timeline-step-row">
-            <div class="timeline-badge-step">02</div>
-            <h4 class="timeline-step-title">Mapeamento Gestual</h4>
-            <p class="timeline-step-desc">Conversão de instruções algorítmicas fundamentais em gestos de referência.</p>
-          </div>
-
-          <div class="timeline-step-row">
-            <div class="timeline-badge-step">03</div>
-            <h4 class="timeline-step-title">Resposta Prática Instantânea</h4>
-            <p class="timeline-step-desc">Ao executar a sequência, o aluno visualiza passo a passo o feedback para um aprendizado interativo.</p>
-          </div>
-        </div>
-      </div>
-    `
-  },
-  {
-    title: "Arquitetura e Desenvolvimento",
-    number: "04",
-    author: "Apresentador 04",
-    content: `
-      <div class="slide-wrap-box">
-        <h3 class="slide-heading-text" style="font-size: 1.5rem;">Tecnologia Simples e Prática</h3>
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-          <div class="tech-spec-row">
-            <div class="tech-icon-pouch tech-icon-pouch-blue">
-              <i data-lucide="code"></i>
-            </div>
-            <div>
-              <p class="tech-meta-title">Interface Padrão</p>
-              <p class="tech-meta-desc">Estruturação focada em HTML5, CSS3 e Javascript puro para rodar nativamente em qualquer navegador sem lentidão.</p>
-            </div>
-          </div>
-          <div class="tech-spec-row">
-            <div class="tech-icon-pouch tech-icon-pouch-purple">
-              <i data-lucide="layout"></i>
-            </div>
-            <div>
-              <p class="tech-meta-title">Visual Fluido</p>
-              <p class="tech-meta-desc">Design responsivo estruturado via classes flexíveis de estilização para excelente encaixe em celulares e computadores.</p>
-            </div>
-          </div>
-        </div>
-        <div class="academic-praise-banner">
-          <p class="academic-praise-meta">Decisão de Design</p>
-          <p class="academic-praise-italic">
-            "O uso de uma ordem de comandos assíncronos e temporizados permite que o estudante observe com clareza o ciclo de execução da sua lógica em tempo real."
-          </p>
-        </div>
-      </div>
-    `
-  },
-  {
-    title: "Métricas de Validação",
-    number: "05",
-    author: "Apresentador 05",
-    content: `
-      <div class="slide-wrap-box">
-        <h3 class="slide-heading-text" style="font-size: 1.5rem;">Métricas de Sucesso</h3>
-        <div class="metric-charts-layout">
-          <div class="metric-number-card">
-            <p class="metric-big-num">92%</p>
-            <p class="metric-num-label" style="color: #c7d2fe;">Nível de Engajamento</p>
-          </div>
-          <div class="metric-number-card bg-metric-emerald">
-            <p class="metric-big-num">100%</p>
-            <p class="metric-num-label" style="color: #a7f3d0;">Acessibilidade Ativa</p>
-          </div>
-        </div>
-        <div class="academic-card">
-          <h4 class="ac-t-indigo" style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em;">Conclusão do Estudo</h4>
-          <p class="slide-quote-italic" style="font-size: 15px; margin-top: 4px;">
-            "A validação do aplicativo indica que o uso de interfaces livres de complexidade textual acelera a assimilação da lógica algorítmica essencial para estudantes inovadores."
-          </p>
-        </div>
-      </div>
-    `
-  },
-  {
-    title: "Referências Acadêmicas",
-    number: "06",
-    author: "Apresentador 06",
-    content: `
-      <div class="slide-wrap-box">
-        <h3 class="slide-heading-text" style="font-size: 1.5rem;">Fontes de Pesquisa</h3>
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-          <div class="academic-card">
-            <p class="slide-p-body" style="font-size: 14px;">GALVÃO, L. <strong>Metodologia Prática sobre Concepção de Jogos Educativos Acessíveis e Adaptativos.</strong> Ensino de Tecnologia, 2020.</p>
-          </div>
-          <div class="academic-card">
-            <p class="slide-p-body" style="font-size: 14px;">BRASIL. <strong>Diretrizes Federais e Lei Brasileira de Inclusão da Pessoa com Deficiência.</strong> Legislação Básica de Acessibilidade Digital Completa, 2015.</p>
-          </div>
-        </div>
-      </div>
-    `
-  }
-];
-
-function cambiarApresentadorBadge() {
-  const buttons = document.querySelectorAll('.tab-report-btn');
-  buttons.forEach((btn, idx) => {
-    if (idx === slideAtualReport) {
-      btn.className = "tab-report-btn tab-report-btn-active";
-    } else {
-      btn.className = "tab-report-btn";
-    }
-  });
-}
-
-function carregarSlideReport(index) {
-  if (index < 0 || index >= slidesReport.length) return;
-  slideAtualReport = index;
-
-  const slide = slidesReport[slideAtualReport];
-  const contentBox = document.getElementById('report-slide-content');
-  if (!contentBox) return;
-
-  contentBox.innerHTML = `
-    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-      <div class="slide-author-badge">
-        <span class="slide-author-text">${slide.author}</span>
-      </div>
-    </div>
-    <div class="slide-heading-row">
-      <span class="slide-heading-num">${slide.number}</span>
-      <h2 class="slide-heading-text">${slide.title}</h2>
-    </div>
-    <div style="margin-top: 16px;">
-      ${slide.content}
-    </div>
-  `;
-
-  cambiarApresentadorBadge();
-  renderizarDotIndicators();
-
-  const btnPrev = document.getElementById('btn-report-prev');
-  const btnNext = document.getElementById('btn-report-next');
-  
-  if (btnPrev) {
-    btnPrev.disabled = (slideAtualReport === 0);
-  }
-
-  if (btnNext) {
-    if (slideAtualReport === slidesReport.length - 1) {
-      btnNext.innerHTML = `<span>Finalizar</span> <i data-lucide="check"></i>`;
-    } else {
-      btnNext.innerHTML = `<span>Continuar</span> <i data-lucide="chevron-right"></i>`;
-    }
-  }
-  
-  if (window.lucide) {
-    window.lucide.createIcons();
-  }
-}
-
-function renderizarDotIndicators() {
-  const dotsBox = document.getElementById('slide-page-indicator-dots');
-  if (!dotsBox) return;
-  dotsBox.innerHTML = '';
-  slidesReport.forEach((_, i) => {
-    const dot = document.createElement('div');
-    dot.className = `dot-indicator ${i === slideAtualReport ? 'dot-indicator-active' : ''}`;
-    dotsBox.appendChild(dot);
-  });
-}
-
-function mudarPaginaReport(index) {
-  carregarSlideReport(index);
-}
-
-function proximaPaginaReport() {
-  if (slideAtualReport < slidesReport.length - 1) {
-    carregarSlideReport(slideAtualReport + 1);
-  } else {
-    fecharApresentacao();
-  }
-}
-
-function anteriorPaginaReport() {
-  if (slideAtualReport > 0) {
-    carregarSlideReport(slideAtualReport - 1);
-  }
-}
+window.addEventListener('resize', () => {
+  renderizarGrid(false);
+});
 
 window.selecionarNivel = selecionarNivel;
 window.limparSequencia = limparSequencia;
@@ -706,11 +711,7 @@ window.proximoNivel = proximoNivel;
 window.reiniciarNivelAtual = reiniciarNivelAtual;
 window.fecharGameOverModal = fecharGameOverModal;
 window.fecharTutorial = fecharTutorial;
-window.abrirApresentacao = abrirApresentacao;
-window.fecharApresentacao = fecharApresentacao;
-window.iniciarApresentacao = iniciarApresentacao;
 window.abrirDicionario = abrirDicionario;
 window.fecharDicionario = fecharDicionario;
-window.mudarPaginaReport = mudarPaginaReport;
-window.proximaPaginaReport = proximaPaginaReport;
-window.anteriorPaginaReport = anteriorPaginaReport;
+window.abrirLevelIntro = abrirLevelIntro;
+window.fecharLevelIntro = fecharLevelIntro;

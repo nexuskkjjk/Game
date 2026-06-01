@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="style.css" />
-    <script src="script.js" defer></script>
+    <script type="module" src="/script.js"></script>
   </head>
   <body>
     
@@ -30,11 +30,7 @@
         </div>
       </div>
 
-      <div class="header-actions-group">
-        <button onclick="abrirApresentacao()" class="h-btn h-btn-indigo">
-          <i data-lucide="file-text"></i>
-          <span>Relatório Acadêmico</span>
-        </button>
+      <div class="header-actions-group" style="justify-content: flex-end;">
         <button onclick="abrirDicionario()" class="h-btn h-btn-emerald">
           <i data-lucide="book-open"></i>
           <span>Dicionário Libras</span>
@@ -47,28 +43,36 @@
       <section class="central-view-block">
         <div class="interactive-card">
           
-          <div class="libras-interpreter-widget">
-            <img id="libras-animator" src="" class="libras-render-media" alt="Sinal em Libras" />
-            <div class="libras-display-stripe">
-              <span class="libras-display-label">Libras Ativa</span>
+          <div class="mission-and-libras-wrapper">
+            <div class="mission-status-card">
+              <div class="mission-card-meta">
+                <span class="meta-prefix">
+                  <i data-lucide="message-square"></i> Missão do Jogo
+                </span>
+                <span class="meta-pill-accessible">Acessível</span>
+              </div>
+              <h2 id="instrucao-game" class="instrucao-game-title">
+                Carregando instrução...
+              </h2>
+              <p id="libras-descricao" class="libras-desc-text">
+                Carregando explicações...
+              </p>
+              <div style="margin-top: 14px; display: flex; justify-content: flex-end;">
+                <button onclick="abrirLevelIntro()" class="h-btn h-btn-indigo" style="padding: 6px 12px; font-size: 11px; font-weight: 700; height: auto; border-radius: 6px;">
+                  <i data-lucide="tv" style="width: 14px; height: 14px; margin-right: 4px;"></i>
+                  <span>Assistir Vídeo de Introdução</span>
+                </button>
+              </div>
             </div>
-            <div class="status-beacon-pulse"></div>
-            <div class="status-beacon"></div>
-          </div>
 
-          <div class="mission-status-card">
-            <div class="mission-card-meta">
-              <span class="meta-prefix">
-                <i data-lucide="message-square"></i> Missão do Jogo
-              </span>
-              <span class="meta-pill-accessible">Acessível</span>
+            <div class="libras-interpreter-widget">
+              <img id="libras-animator" src="" class="libras-render-media" alt="Sinal em Libras" />
+              <div class="libras-display-stripe">
+                <span class="libras-display-label">Libras Ativa</span>
+              </div>
+              <div class="status-beacon-pulse"></div>
+              <div class="status-beacon"></div>
             </div>
-            <h2 id="instrucao-game" class="instrucao-game-title">
-              Carregando instrução...
-            </h2>
-            <p id="libras-descricao" class="libras-desc-text">
-              Carregando explicações...
-            </p>
           </div>
 
           <div class="canvas-grid-box">
@@ -116,96 +120,46 @@
     </main>
 
     <div id="modal-tutorial" class="modal-screen-overlay">
-      <div class="tutorial-deck-box">
+      <div class="tutorial-deck-box" style="max-width: 480px;">
         <div class="deck-color-bar-top"></div>
         <div class="deck-modal-center-layout">
-          <div class="modal-icon-badge-round animate-bouncing">
-            <i data-lucide="graduation-cap"></i>
+          <div class="modal-icon-badge-round animate-bouncing" style="color: var(--color-indigo); background-color: var(--color-indigo-light);">
+            <i data-lucide="hand"></i>
           </div>
           
           <div class="modal-headline-block">
-            <h2 class="modal-heading-text">Projeto Nexusplay</h2>
+            <h2 class="modal-heading-text">Aprenda Algoritmos em Libras</h2>
             <p class="modal-tagline-text">
-              Trabalho Acadêmico de Concepção de Algoritmos focado em acessibilidade bilingue (Libras).
+              O Nexusplay é um jogo educativo interativo focado na acessibilidade bilíngue do ensino de lógica e programação.
             </p>
           </div>
 
           <div class="tutorial-meta-showcase-box">
             <div class="meta-showcase-row">
-              <div class="meta-showcase-icon-box bg-sh-indigo">
-                <i data-lucide="file-text"></i>
+              <div class="meta-showcase-icon-box bg-sh-emerald">
+                <i data-lucide="book-open"></i>
               </div>
               <div class="showcase-text-col">
-                <h4 class="showcase-row-title">Relatório Acadêmico</h4>
-                <p class="showcase-row-desc">Consulte o dossiê com fundamentação teórica completo.</p>
+                <h4 class="showcase-row-title">Dicionário Libras</h4>
+                <p class="showcase-row-desc">Consulte os sinais visuais de cada comando de movimento.</p>
               </div>
             </div>
             
             <div class="meta-showcase-row">
-              <div class="meta-showcase-icon-box bg-sh-emerald">
-                <i data-lucide="hand"></i>
+              <div class="meta-showcase-icon-box bg-sh-indigo">
+                <i data-lucide="play"></i>
               </div>
               <div class="showcase-text-col">
-                <h4 class="showcase-row-title">Acessibilidade Pura</h4>
-                <p class="showcase-row-desc">Interface sem barreiras de texto, adaptada à cultura e semiótica surda.</p>
+                <h4 class="showcase-row-title">Lógica de Blocos</h4>
+                <p class="showcase-row-desc">Ordene a sequência correta de comandos para guiar o robô ao objetivo.</p>
               </div>
             </div>
           </div>
 
-          <div style="display: flex; flex-direction: column; width: 100%; gap: 10px;">
-            <button onclick="iniciarApresentacao()" class="modal-primary-action-btn">
-              <span>ABRIR APRESENTAÇÃO</span>
-              <i data-lucide="chevron-right"></i>
-            </button>
-            <button onclick="fecharTutorial()" class="modal-secondary-cancel-btn">
-              Ir para o Jogo
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="modal-report" class="modal-screen-overlay hidden">
-      <div class="slide-report-immersive-container">
-        <div class="immersive-bar-deck-top"></div>
-        
-        <div class="immersive-report-header">
-          <div class="immersive-header-meta">
-            <i data-lucide="file-text"></i>
-            <span class="immersive-hdr-tag">Dossiê Acadêmico</span>
-          </div>
-          <button onclick="fecharApresentacao()" class="close-immersive-btn">
-            <i data-lucide="x"></i>
-          </button>
-        </div>
-
-        <div class="immersive-report-body">
-          
-          <nav class="report-sidebar-nav custom-scrollbar-dark">
-            <button onclick="mudarPaginaReport(0)" class="tab-report-btn">Capa</button>
-            <button onclick="mudarPaginaReport(1)" class="tab-report-btn">Fundamento</button>
-            <button onclick="mudarPaginaReport(2)" class="tab-report-btn">Método</button>
-            <button onclick="mudarPaginaReport(3)" class="tab-report-btn">Estrutura</button>
-            <button onclick="mudarPaginaReport(4)" class="tab-report-btn">Métricas</button>
-            <button onclick="mudarPaginaReport(5)" class="tab-report-btn">Referências</button>
-          </nav>
-
-          <div class="immersive-report-scroller custom-scrollbar-dark">
-            <div id="report-slide-content">
-            </div>
-          </div>
-
-        </div>
-
-        <div class="immersive-report-footer">
-          <div id="slide-page-indicator-dots" class="dot-carousel-box">
-          </div>
-          <div class="carousel-nav-group">
-            <button id="btn-report-prev" onclick="anteriorPaginaReport()" class="nav-report-arrow-btn">
-              <i data-lucide="chevron-left"></i> Anterior
-            </button>
-            <button id="btn-report-next" onclick="proximaPaginaReport()" class="nav-report-arrow-btn nav-report-primary-btn">
-              <span>Continuar</span> <i data-lucide="chevron-right"></i>
+          <div style="width: 100%; margin-top: 4px;">
+            <button onclick="fecharTutorial()" class="modal-primary-action-btn" style="box-shadow: 0 10px 15px rgba(79, 70, 229, 0.2)">
+              <span>COMEÇAR DESAFIO</span>
+              <i data-lucide="play"></i>
             </button>
           </div>
         </div>
@@ -269,6 +223,37 @@
         <button onclick="fecharDicionario()" class="modal-primary-action-btn" style="background-color: var(--text-primary); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15)">
           Ok, Entendido!
         </button>
+      </div>
+    </div>
+
+    <div id="modal-level-intro" class="modal-screen-overlay hidden">
+      <div class="tutorial-deck-box" style="max-width: 512px;">
+        <div class="deck-color-bar-top" style="background-color: var(--color-indigo)"></div>
+        <div class="deck-modal-center-layout">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+            <div class="slide-author-badge">
+              <span class="slide-author-text">Apresentação</span>
+            </div>
+          </div>
+          <h2 id="level-intro-title" class="modal-heading-text">Introdução ao Nível 1</h2>
+          
+          <!-- Large Video/GIF Showcase -->
+          <div style="height: 280px; aspect-ratio: 4/5; background-color: #0d121f; border-radius: 16px; overflow: hidden; border: 4px solid var(--border-light); box-shadow: var(--shadow-lg); position: relative; margin: 12px auto; display: flex; align-items: center; justify-content: center;">
+            <img id="level-intro-video" src="" style="width: 100%; height: 100%; object-fit: cover;" alt="Vídeo demonstrativo do sinal em Libras" />
+            <div class="libras-display-stripe">
+              <span class="libras-display-label">Vídeo Demonstrativo</span>
+            </div>
+          </div>
+
+          <div class="tutorial-meta-showcase-box" style="background-color: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.08); text-align: left; padding: 12px; border-radius: 8px; margin-top: 4px; width: 100%;">
+            <p id="level-intro-instruction" class="instrucao-game-title" style="font-size: 13px; color: var(--text-primary); font-weight: 800; line-height: 1.4; margin-bottom: 6px;"></p>
+            <p id="level-intro-desc" class="libras-desc-text" style="font-size: 11px; color: var(--text-secondary); line-height: 1.5;"></p>
+          </div>
+
+          <button onclick="fecharLevelIntro()" class="modal-primary-action-btn" style="margin-top: 14px; width: 100%; box-shadow: 0 10px 15px rgba(99, 102, 241, 0.2)">
+            <span>PRATICAR DESAFIO</span> <i data-lucide="play"></i>
+          </button>
+        </div>
       </div>
     </div>
 
